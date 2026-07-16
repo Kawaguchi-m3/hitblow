@@ -14,6 +14,9 @@ def play(digits=3):
     print(f"Hit & Blow（{digits} 桁・重複なし）")
 
     # ===== ① 開始時に足す（難易度・あいさつ など）: ここに書く =====
+    from .start_screen import show_start_screen
+
+    show_start_screen(digits)
 
     tries = 0
     while True:
@@ -23,6 +26,11 @@ def play(digits=3):
         # 例:  from .hint import hint
         #      if guess == "h":
         #          print(hint(secret)); continue
+        
+        from .restart import restart
+        if guess in ("r", "restart"):
+            secret, tries = restart(digits)
+            continue
 
         if len(guess) != digits or not guess.isdigit():
             print(f"{digits} 桁の数字で入力してね")
