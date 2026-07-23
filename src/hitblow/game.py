@@ -15,8 +15,10 @@ def play(digits=3):
 
     # ===== ① 開始時に足す（難易度・あいさつ など）: ここに書く =====
     from .start_screen import show_start_screen
+    from .score import ScoreTracker
 
     show_start_screen(digits)
+    score_tracker = ScoreTracker(digits)
 
     tries = 0
     while True:
@@ -30,6 +32,7 @@ def play(digits=3):
         from .restart import restart
         if guess in ("r", "restart"):
             secret, tries = restart(digits)
+            score_tracker.reset()
             continue
 
         if len(guess) != digits or not guess.isdigit():
@@ -38,13 +41,21 @@ def play(digits=3):
         tries += 1
         hit, blow = judge(secret, guess)
         print(f"  Hit={hit}  Blow={blow}")
+
+        score_result = score_tracker.record_guess(guess, hit, blow)
+        print(
+            f"  情報量={score_result.information:.2f} bit"
+            f"（基準 {score_result.best_information:.2f} bit）"
+        )
+        print(f"  整合性={score_result.consistency}")
+        print(f"  今回の推理コスト=+{score_result.turn_score}")
+        print(f"  合計推理コスト={score_result.total_after_turn}")
+
         if hit == digits:
 
             # ===== ③ 勝利時に足す（スコア・履歴 など）: ここに書く =====
-            from .score import evaluate_score
-
-            score, msg = evaluate_score(tries)
-            print(msg)
+            print(f"正解時の不確実性=+{score_result.finish_penalty}")
+            print(f"最終推理コスト={score_result.final_score}（低いほど優秀）")
 
             print(f"正解！ {tries} 回で当たり（答え {secret}）")
             break
