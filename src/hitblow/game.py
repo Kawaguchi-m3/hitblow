@@ -15,8 +15,10 @@ def play(digits=3):
 
     # ===== ① 開始時に足す（難易度・あいさつ など）: ここに書く =====
     from .start_screen import show_start_screen
+    from .score import ScoreTracker
 
     show_start_screen(digits)
+    score_tracker = ScoreTracker(digits)
 
     tries = 0
     while True:
@@ -30,6 +32,7 @@ def play(digits=3):
         from .restart import restart
         if guess in ("r", "restart"):
             secret, tries = restart(digits)
+            score_tracker.reset()
             continue
 
         if len(guess) != digits or not guess.isdigit():
@@ -38,13 +41,15 @@ def play(digits=3):
         tries += 1
         hit, blow = judge(secret, guess)
         print(f"  Hit={hit}  Blow={blow}")
+
+        score_result = score_tracker.record_guess(guess, hit, blow)
+        total_score = (
+            score_result.final_score if hit == digits else score_result.total_after_turn
+        )
+        print(f"  合計推理スコア={total_score}")
+
         if hit == digits:
 
             # ===== ③ 勝利時に足す（スコア・履歴 など）: ここに書く =====
-            from .score import evaluate_score
-
-            score, msg = evaluate_score(tries)
-            print(msg)
-
             print(f"正解！ {tries} 回で当たり（答え {secret}）")
             break
