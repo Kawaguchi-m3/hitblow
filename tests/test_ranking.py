@@ -96,5 +96,33 @@ def test_saved_ranking_can_be_displayed(tmp_path):
 
     show_saved_ranking(3, path, outputs.append)
 
-    assert "\n【3桁ランキング】" in outputs
-    assert " 1. 太郎  score = 500" in outputs
+    assert "\n【ランキング : 3桁】" in outputs
+    assert "   1 | 太郎         |      500" in outputs
+
+
+def test_full_width_and_half_width_names_align_in_table(tmp_path):
+    path = tmp_path / "ranking.json"
+    save_rankings(
+        [make_entry("太郎", 500), make_entry("Alice", 600)],
+        path,
+    )
+    outputs = []
+
+    show_saved_ranking(3, path, outputs.append)
+
+    assert "   1 | 太郎         |      500" in outputs
+    assert "   2 | Alice        |      600" in outputs
+
+
+def test_name_is_limited_by_display_width():
+    from hitblow.ranking import input_name
+
+    names = iter(["あいうえおかき", "あいうえおか"])
+    outputs = []
+
+    name = input_name(lambda prompt: next(names), outputs.append)
+
+    assert name == "あいうえおか"
+    assert outputs == [
+        "名前は表示幅12桁以内（半角12文字・全角6文字）で入力してください。"
+    ]

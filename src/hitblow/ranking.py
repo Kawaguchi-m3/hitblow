@@ -5,9 +5,12 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Callable
+from unicodedata import east_asian_width
 
 
 RANKING_LIMIT = 10
+NAME_COLUMN_WIDTH = 12
+SCORE_COLUMN_WIDTH = 8
 DEFAULT_RANKING_PATH = Path.home() / ".hitblow" / "ranking.json"
 
 
@@ -86,12 +89,30 @@ def input_name(
     input_func: Callable[[str], str] = input,
     output_func: Callable[[str], None] = print,
 ) -> str:
-    """1文字から20文字の名前が入力されるまで繰り返す。"""
+    """表示幅12桁以内の名前が入力されるまで繰り返す。"""
     while True:
         name = input_func("名前を入力してください > ").strip()
-        if 1 <= len(name) <= 20:
+        if name and text_width(name) <= NAME_COLUMN_WIDTH:
             return name
-        output_func("名前は1文字から20文字で入力してください。")
+        output_func("名前は表示幅12桁以内（半角12文字・全角6文字）で入力してください。")
+
+
+def text_width(text: str) -> int:
+    """全角文字を2桁として、文字列の表示幅を返す。"""
+    return sum(2 if east_asian_width(character) in ("W", "F", "A") else 1 for character in text)
+
+
+def fit_text(text: str, width: int) -> str:
+    """文字列を表示幅に収め、右側を空白で揃える。"""
+    fitted = ""
+    fitted_width = 0
+    for character in text:
+        character_width = text_width(character)
+        if fitted_width + character_width > width:
+            break
+        fitted += character
+        fitted_width += character_width
+    return fitted + " " * (width - fitted_width)
 
 
 def show_ranking(
@@ -101,13 +122,21 @@ def show_ranking(
 ) -> None:
     """同じ桁数のランキングを表示する。"""
     ranking = rankings_for_digits(entries, digits)
-    output_func(f"\n【{digits}桁ランキング】")
+    output_func(f"\n【ランキング : {digits}桁】")
     if not ranking:
         output_func("まだ記録がありません。")
         return
 
+    output_func(
+        f"{fit_text('順位', 4)} | {fit_text('名前', NAME_COLUMN_WIDTH)}"
+        f" | {fit_text('スコア', SCORE_COLUMN_WIDTH)}"
+    )
+    output_func(f"{'-' * 4}-+-{'-' * NAME_COLUMN_WIDTH}-+-{'-' * SCORE_COLUMN_WIDTH}")
     for rank, entry in enumerate(ranking, start=1):
-        output_func(f"{rank:2}. {entry.name}  score = {entry.score}")
+        output_func(
+            f"{rank:>4} | {fit_text(entry.name, NAME_COLUMN_WIDTH)}"
+            f" | {entry.score:>{SCORE_COLUMN_WIDTH}}"
+        )
 
 
 def show_saved_ranking(
