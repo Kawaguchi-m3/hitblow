@@ -27,6 +27,7 @@ def show_start_screen(digits):
         print("\n1. ゲームスタート")
         print("2. ルール表示")
         print("3. コマンド表示")
+        print("4. ランキング表示")
         choice = input("選択してください > ").strip()
 
         if choice == "1":
@@ -38,5 +39,10 @@ def show_start_screen(digits):
         if choice == "3":
             show_commands(digits)
             continue
+        if choice == "4":
+            from .ranking import show_saved_ranking
 
-        print("1、2、3のいずれかを入力してください。")
+            show_saved_ranking(digits)
+            continue
+
+        print("1、2、3、4のいずれかを入力してください。")

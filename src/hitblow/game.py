@@ -36,20 +36,23 @@ def play(digits=3):
             continue
 
         if len(guess) != digits or not guess.isdigit():
-            print(f"{digits} 桁の数字で入力してね")
+            print(f"{digits} 桁の数字で入力してください")
             continue
         tries += 1
         hit, blow = judge(secret, guess)
-        print(f"  Hit={hit}  Blow={blow}")
+        print(f"  Hit : {hit}  Blow : {blow}")
 
         score_result = score_tracker.record_guess(guess, hit, blow)
         total_score = (
             score_result.final_score if hit == digits else score_result.total_after_turn
         )
-        print(f"  合計推理スコア={total_score}")
+        print(f"  score = {total_score}")
 
         if hit == digits:
 
             # ===== ③ 勝利時に足す（スコア・履歴 など）: ここに書く =====
-            print(f"正解！ {tries} 回で当たり（答え {secret}）")
+            from .ranking import handle_ranking
+
+            print(f"正解！ 回答数 : {tries}")
+            handle_ranking(score_result.final_score, tries, digits)
             break
