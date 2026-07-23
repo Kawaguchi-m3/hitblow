@@ -45,4 +45,5 @@ tests/test_core.py
 - 1本目を merge したら、2本目のペアは `git pull` してから直す（上のリストがコンフリクトする）。
 
 ## 第3回
-- `pyproject.toml` の `[project.scripts]` を有効化 → `uv build` → `pip install` で `hitblow` を配布。
+- `pyproject.toml` の `[project.scripts]` を有効化済み。
+- `uv build` でパッケージを作り、`uv run hitblow` でコマンド起動できる。
