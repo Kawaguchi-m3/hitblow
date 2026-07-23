@@ -49,6 +49,7 @@ class ScoreTracker:
 
     def __init__(self, digits: int, candidates: list[str] | None = None):
         self.digits = digits
+        self._uses_full_candidate_set = candidates is None
         self._starting_candidates = (
             list(candidates) if candidates is not None else make_candidates(digits)
         )
@@ -58,9 +59,15 @@ class ScoreTracker:
         """候補と累計推理コストをゲーム開始時に戻す。"""
         self.candidates = list(self._starting_candidates)
         self._total_units = 0.0
+        self._is_initial_state = self._uses_full_candidate_set
 
     def _best_consistent_information(self) -> float:
         """現在の候補の中で得られる最大の期待情報量。"""
+        # 開始時の完全な候補集合では、どの候補も数字と位置に対して
+        # 対称なので、代表1件の情報量だけを計算すればよい。
+        if self._is_initial_state and self.candidates:
+            return information_gain(self.candidates, self.candidates[0])
+
         return max(
             (information_gain(self.candidates, guess) for guess in self.candidates),
             default=0.0,
@@ -101,6 +108,7 @@ class ScoreTracker:
             for secret in candidates_before
             if judge(secret, guess) == (hit, blow)
         ]
+        self._is_initial_state = False
 
         finish_units = 0.0
         if hit == self.digits and candidate_count_before > 0:

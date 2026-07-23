@@ -10,46 +10,58 @@ from .core import judge, make_secret
 
 
 def play(digits=3):
-    secret = make_secret(digits)
-    print(f"Hit & Blow（{digits} 桁・重複なし）")
-
     # ===== ① 開始時に足す（難易度・あいさつ など）: ここに書く =====
     from .start_screen import show_start_screen
     from .score import ScoreTracker
 
-    show_start_screen(digits)
-    score_tracker = ScoreTracker(digits)
-
-    tries = 0
     while True:
-        guess = input("予想 > ").strip()
+        digits = show_start_screen(digits)
+        secret = make_secret(digits)
+        print(f"Hit & Blow（{digits} 桁・重複なし）")
+        score_tracker = ScoreTracker(digits)
 
-        # ===== ② 入力コマンドに足す（ヒント など）: ここに書く（import もここに） =====
-        # 例:  from .hint import hint
-        #      if guess == "h":
-        #          print(hint(secret)); continue
-        
-        from .restart import restart
-        if guess in ("r", "restart"):
-            secret, tries = restart(digits)
-            score_tracker.reset()
-            continue
+        tries = 0
+        while True:
+            guess = input("予想 > ").strip()
 
-        if len(guess) != digits or not guess.isdigit():
-            print(f"{digits} 桁の数字で入力してね")
-            continue
-        tries += 1
-        hit, blow = judge(secret, guess)
-        print(f"  Hit={hit}  Blow={blow}")
+            # ===== ② 入力コマンドに足す（ヒント など）: ここに書く（import もここに） =====
+            # 例:  from .hint import hint
+            #      if guess == "h":
+            #          print(hint(secret)); continue
 
-        score_result = score_tracker.record_guess(guess, hit, blow)
-        total_score = (
-            score_result.final_score if hit == digits else score_result.total_after_turn
-        )
-        print(f"  合計推理スコア={total_score}")
+            from .restart import restart
 
-        if hit == digits:
+            if guess in ("r", "restart"):
+                secret, tries = restart(digits)
+                score_tracker.reset()
+                continue
+            if guess in ("s", "start"):
+                print("スタートメニューに戻ります。")
+                break
+            if guess in ("q", "quit"):
+                print("ゲームを終了します。")
+                return
 
-            # ===== ③ 勝利時に足す（スコア・履歴 など）: ここに書く =====
-            print(f"正解！ {tries} 回で当たり（答え {secret}）")
-            break
+            if len(guess) != digits or not guess.isdigit():
+                print(f"{digits} 桁の数字で入力してください")
+                continue
+            tries += 1
+            hit, blow = judge(secret, guess)
+            print(f"  Hit : {hit}  Blow : {blow}")
+
+            score_result = score_tracker.record_guess(guess, hit, blow)
+            total_score = (
+                score_result.final_score
+                if hit == digits
+                else score_result.total_after_turn
+            )
+            print(f"  Score = {total_score}")
+
+            if hit == digits:
+
+                # ===== ③ 勝利時に足す（スコア・履歴 など）: ここに書く =====
+                from .ranking import handle_ranking
+
+                print(f"正解！ 回答数 : {tries}")
+                handle_ranking(score_result.final_score, tries, digits)
+                return
