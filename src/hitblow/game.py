@@ -43,19 +43,13 @@ def play(digits=3):
         print(f"  Hit={hit}  Blow={blow}")
 
         score_result = score_tracker.record_guess(guess, hit, blow)
-        print(
-            f"  情報量={score_result.information:.2f} bit"
-            f"（基準 {score_result.best_information:.2f} bit）"
+        total_score = (
+            score_result.final_score if hit == digits else score_result.total_after_turn
         )
-        print(f"  整合性={score_result.consistency}")
-        print(f"  今回の推理コスト=+{score_result.turn_score}")
-        print(f"  合計推理コスト={score_result.total_after_turn}")
+        print(f"  合計推理スコア={total_score}")
 
         if hit == digits:
 
             # ===== ③ 勝利時に足す（スコア・履歴 など）: ここに書く =====
-            print(f"正解時の不確実性=+{score_result.finish_penalty}")
-            print(f"最終推理コスト={score_result.final_score}（低いほど優秀）")
-
             print(f"正解！ {tries} 回で当たり（答え {secret}）")
             break
